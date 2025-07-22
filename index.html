@@ -1,0 +1,233 @@
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+  <meta charset="UTF-8">
+  <title>Transcription &amp; Translation Challenge</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9fafb;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #1e3a8a;
+    }
+
+    .section {
+      margin: 30px auto;
+      max-width: 800px;
+      padding: 20px;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+
+    .label {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #475569;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 80%;
+      font-size: 16px;
+      border: 2px solid #94a3b8;
+      border-radius: 6px;
+    }
+
+    .feedback {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .correct {
+      color: #059669;
+    }
+
+    .incorrect {
+      color: #dc2626;
+    }
+
+    .codon-row {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .codon-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .codon {
+      background: #e0f2fe;
+      padding: 12px 20px;
+      border: 2px solid #0284c7;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      min-width: 80px;
+    }
+
+    .amino-input {
+      width: 100px;
+      padding: 6px;
+      font-size: 14px;
+      text-align: center;
+      border-radius: 4px;
+      border: 2px solid #cbd5e1;
+    }
+
+    .amino-input.correct {
+      border-color: #22c55e;
+      background-color: #dcfce7;
+    }
+
+    .amino-input.incorrect {
+      border-color: #f87171;
+      background-color: #fee2e2;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0369a1;
+    }
+
+    .chart {
+      margin-top: 30px;
+    }
+
+    .chart img {
+      width: 100%;
+      max-width: 700px;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🧬 Transcription &amp; Translation Challenge</h1>
+<button onclick="resetActivity()">🔄 Reset Activity</button>
+
+<div class="section">
+  <div class="label">Step 1: DNA Template Strand</div>
+  <p><strong>DNA:</strong> T T A C A C T T G C A A C</p>
+
+  <div class="label">Type the complementary mRNA strand:</div>
+  <input type="text" id="mRNAInput" placeholder="e.g. AAUGUGAACGUUG">
+  <div class="feedback" id="mRNAFeedback"></div>
+  <button onclick="checkmRNA()">Check mRNA</button>
+</div>
+
+<div id="translationSection" class="section" style="display: none;">
+  <div class="label">Step 2: Translate Codons to Amino Acids</div>
+  <p>Enter the amino acid for each codon (full name or 3-letter abbreviation).</p>
+
+  <div class="codon-row">
+    <div class="codon-block">
+      <div class="codon">AAU</div>
+      <input class="amino-input" data-answer="Asparagine,Asp,Asn">
+    </div>
+    <div class="codon-block">
+      <div class="codon">GUG</div>
+      <input class="amino-input" data-answer="Valine,Val">
+    </div>
+    <div class="codon-block">
+      <div class="codon">AAC</div>
+      <input class="amino-input" data-answer="Asparagine,Asp,Asn">
+    </div>
+    <div class="codon-block">
+      <div class="codon">GUU</div>
+      <input class="amino-input" data-answer="Valine,Val">
+    </div>
+  </div>
+
+  <div class="feedback" id="translationFeedback"></div>
+  <button onclick="checkTranslation()">Check Amino Acids</button>
+
+  <div class="chart">
+    <h3>📘 Codon Chart (Figure 7.7)</h3>
+    <img src="https://i.imgur.com/TICtB9B.png" alt="Codon Chart">
+  </div>
+</div>
+
+<script>
+  const correctmRNA = "AAUGUGAACGUUG";
+
+  function checkmRNA() {
+    const input = document.getElementById('mRNAInput').value.trim().toUpperCase();
+    const feedback = document.getElementById('mRNAFeedback');
+
+    if (input === correctmRNA) {
+      feedback.textContent = "✅ Great job! You've correctly transcribed the mRNA.";
+      feedback.className = "feedback correct";
+      document.getElementById('translationSection').style.display = 'block';
+    } else {
+      feedback.textContent = "❌ Not quite. Hint: A → U, T → A, C → G, G → C. Try again!";
+      feedback.className = "feedback incorrect";
+    }
+  }
+
+  function checkTranslation() {
+    const inputs = document.querySelectorAll('.amino-input');
+    let allCorrect = true;
+
+    inputs.forEach(input => {
+      const acceptedAnswers = input.dataset.answer.toLowerCase().split(',');
+      const userAnswer = input.value.trim().toLowerCase();
+
+      if (acceptedAnswers.includes(userAnswer)) {
+        input.classList.add('correct');
+        input.classList.remove('incorrect');
+      } else {
+        input.classList.add('incorrect');
+        input.classList.remove('correct');
+        allCorrect = false;
+      }
+    });
+
+    const feedback = document.getElementById('translationFeedback');
+    if (allCorrect) {
+      feedback.textContent = "🎉 Excellent! You correctly translated all codons.";
+      feedback.className = "feedback correct";
+    } else {
+      feedback.textContent = "🔁 Some answers are incorrect. Use the codon chart for help and try again!";
+      feedback.className = "feedback incorrect";
+    }
+  }
+
+  function resetActivity() {
+    // Reset mRNA
+    document.getElementById('mRNAInput').value = '';
+    document.getElementById('mRNAFeedback').textContent = '';
+    document.getElementById('mRNAFeedback').className = 'feedback';
+    document.getElementById('translationSection').style.display = 'none';
+
+    // Reset translation
+    document.querySelectorAll('.amino-input').forEach(input => {
+      input.value = '';
+      input.classList.remove('correct', 'incorrect');
+    });
+    document.getElementById('translationFeedback').textContent = '';
+    document.getElementById('translationFeedback').className = 'feedback';
+  }
+</script>
+
+
+
+</body></html>
